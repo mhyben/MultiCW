@@ -1,0 +1,15 @@
+keras==2.10.0
+tensorflow-gpu==2.10.0
+tensorflow-estimator==2.10.0
+tensorflow-io-gcs-filesystem==0.31.0
+numpy==1.24.2
+pandas==1.5.3
+scikit-learn==1.2.1
+scipy==1.10.1
+matplotlib-inline==0.1.6
+h5py==3.8.0
+nltk==3.8.1
+regex==2022.10.31
+tqdm==4.64.1
+transformers==4.26.1
+tokenizers==0.13.2
