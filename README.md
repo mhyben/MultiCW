@@ -4,25 +4,41 @@ This repository contains the code and datasets for the paper "A Real-World Multi
 
 ## Abstract
 
-We introduce the Multi-Check-Worthy dataset (MultiCW), a benchmarking dataset of check-worthy claims that spans multiple languages, topics, and writing styles. MultiCW was created by merging four existing datasets (CLEF-2022, CLEF-2023, MultiClaim, Ru22Facts) and extending them with novel samples specifically collected for the task using the MONANT system. To ensure balance, additional samples were added through translations of English samples from the LESA dataset into target languages and curated Wikipedia samples, guided by language-specific named entity extraction to preserve topical and linguistic diversity. The final dataset comprises 112,852 samples in 16 languages, evenly distributed between noisy and structured writing styles, with balanced representation across all languages in both classes.
-
-We evaluated MultiCW by fine-tuning three state-of-the-art language models (XLM-RoBERTa, mDeBERTa, and LESA) and testing six large language models (LLMs), including both commercial and open-source, in zero-shot settings. The results show that MultiCW enhances performance, as indicated by improved F1 scores, and strengthens generalization across languages and topics. It surpasses the models trained on the original LESA dataset tested on the NewsClaims dataset, which was used as an out-of-distribution benchmark. This work highlights MultiCW as a valuable benchmarking dataset for improving the accuracy of automated fact-checking systems, particularly in detecting check-worthy claims.
+We introduce Multi-Check-Worthy dataset (MultiCW), a multilingual benchmarking dataset for check-worthy claim detection, covering 16 languages, 6 topical domains, and 2 writing styles. The dataset consists of 123,722 samples, evenly distributed between noisy and structured texts, with balanced representation of check-worthy and non-check-worthy classes across all languages. We evaluate MultiCW using (a) three fine-tuned state-of-the-art multilingual language models and (b) a variety of large language models (LLMs) in zero-shot settings, including both commercial and open-source models, using diverse sizes and prompting strategies. Results show that models fine-tuned on MultiCW consistently outperform zero-shot LLMs in binary classification of check-worthy claims. Moreover, these fine-tuned models demonstrate strong generalization across languages, topics, and writing styles, as evidenced by cross-domain experiments on previously unseen dataset. Our findings position MultiCW as a valuable resource for advancing multilingual and cross-domain automated fact-checking systems.
 
 ## Project structure
 
-- **Source datasets**: Contains the datasets used to create the MultiCW dataset.
+- **Source-datasets**: Contains the datasets used to create the MultiCW dataset.
 
-- **Final dataset**: Contains the partial files used to compile the MultiCW dataset together with the final dataset and the train, validation, and test sets all in CSV format.
+- **Final-dataset**: Contains the partial files used to compile the MultiCW dataset together with the final dataset and the train, validation, and test sets all in CSV format.
 
-- **MultiCW dataset**: Notebook for setting up and exploring the MultiCW dataset.
+- **1-MultiCW-dataset**: Notebook for setting up and exploring the MultiCW dataset.
 
-- **Models fine-tuning**: Notebook for fine-tuning models on the MultiCW dataset.
-
-- **Named entity benchmark**: Notebook for benchmarking named entity recognition on the MultiCW dataset.
+- **2-Models-fine-tuning**: Notebook for fine-tuning models on the MultiCW dataset and their evaluation.
 
 ## Conda environment setup
+There are two jupyter notebooks in this project. However, out of three models fine-tuned and evaluated in the ***2-Models-fine-tuning*** notebook, we need to create a specific conda environment for two models and a separate conda environment for the third one. We therefore need to create overall three conda environments for the following use cases:
+* The whole ***1-MultiCW-dataset notebook***
+* mDeBERTa & XLM-RoBERTa models of ***2-Models-fine-tuning notebook***
+* LESA model of ***2-Models-fine-tuning notebook***
 
-### MultiCW Dataset Notebook
+To make the creation and setup of the conda environments as simple as possible, we have prepared the shell script to automate the process. 
+To run the shell script simply run the following commands:
+
+```bash
+cd /<your-path>/MultiCW
+chmod +x setup.sh
+./setup.sh
+```
+When prompted, enter your path to your Conda installation, i.e.:
+```bash
+/home/yourname/miniconda3
+```
+
+### Manual installation of the conda environments
+In case you want to install the conda environments manually, you can follow the following steps.  
+
+#### MultiCW Dataset Notebook
 
 ```bash
 conda create --name MultiCW-dataset python=3.10
@@ -35,7 +51,7 @@ conda install -n base -c conda-forge jupyterlab_widgets
 jupyter labextension install js
 ```
 
-### MultiCW Fine-Tuning Notebook
+#### MultiCW Fine-Tuning Notebook - mDeBERTa & xlm-RoBERTa models
 
 ```bash
 conda create --name MultiCW-finetune python=3.10
@@ -46,6 +62,8 @@ conda install -n base -c conda-forge jupyterlab_widgets
 pip install -r requirements-finetune.txt
 python -m spacy download en_core_web_sm
 ```
+
+#### MultiCW Fine-Tuning Notebook - LESA model
 
 ```bash
 conda create --name MultiCW-lesa python=3.10
