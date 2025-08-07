@@ -4,6 +4,7 @@ from collections import defaultdict
 
 from tqdm.auto import tqdm
 from pandas import Series, DataFrame
+from translation import chunk_by_sentences, init_splitter
 
 gliner_categories = [
     'name',
@@ -42,6 +43,10 @@ def gliner_entities(claims: Series, lang: str, model=None, show_progress=True) -
     if not model:
         model = init_gliner()
 
+    # Initialize sentence splitter model for the given language
+    print('Entities: Init splitter')
+    splitter = init_splitter(lang)
+
     # Initialize the 'entities' column with empty lists
     entity_lists = []
     text_lang_pairs = defaultdict(int)
@@ -57,6 +62,11 @@ def gliner_entities(claims: Series, lang: str, model=None, show_progress=True) -
     for text in iterator:
         extracted_entities = []
 
+        # Chunk the text as Gliner is only capable of processing up to 384 characters
+        if len(text) > 384:
+            # print('Text too long. Chunking:')
+            text = chunk_by_sentences(text, lang, splitter, 384)
+        
         try:
             entities = model.predict_entities(text, gliner_categories)
             entities = [entity['text'] for entity in entities]

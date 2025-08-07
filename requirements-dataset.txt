@@ -13,3 +13,19 @@ regex==2022.10.31
 tqdm==4.64.1
 transformers==4.26.1
 tokenizers==0.13.2
+regex
+tqdm
+wtpsplit
+Levenshtein
+iso639-lang
+deep_translator
+wikipedia-api
+wikipedia
+wtpsplit
+sentence-transformers
+yaspin
+tqdm pandas matplotlib numpy
+py-markdown-table
+ipywidgets
+ollama
+langdetect

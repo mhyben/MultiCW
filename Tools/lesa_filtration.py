@@ -22,7 +22,7 @@ h_stop = '\x1b[0m'
 
 # Point to the Ollama server
 ollama_url = "http://localhost:11434/api/generate"
-model='qwen2.5:7b'
+model='gemma3:4b'
 
 def is_claim_with_context(sample: str):
     """
