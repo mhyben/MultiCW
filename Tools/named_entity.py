@@ -44,7 +44,7 @@ def gliner_entities(claims: Series, lang: str, model=None, show_progress=True) -
         model = init_gliner()
 
     # Initialize sentence splitter model for the given language
-    print('Entities: Init splitter')
+    # print('Entities: Init splitter')
     splitter = init_splitter(lang)
 
     # Initialize the 'entities' column with empty lists

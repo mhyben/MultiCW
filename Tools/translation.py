@@ -20,12 +20,7 @@ h_yellow = '\x1b[1;30;43m'
 
 def init_splitter(lang: str):
     # Initialize sentence splitter
-    try:
-        splitter = SaT("sat-3l", style_or_domain="ud", language=lang)
-        splitter.model.active_adapter = ("sk", "ud")
-        return splitter
-    except Exception as err:
-        print(f"Error: {str(err)}")
+    return SaT("sat-3l", style_or_domain="ud", language=lang)
 
 # Translation
 def cooldown(interval:int=600, verbose=True):
@@ -38,10 +33,8 @@ def parallel_deeptranslate(content: Series, src_lang: str, dst_lang: str, show_p
                            max_attempts=3):
     src_lang = 'zh-CN' if src_lang == 'zh' else src_lang
     dst_lang = 'zh-CN' if dst_lang == 'zh' else dst_lang
-    print('Parallel-DeepTranslate: Init splitter')
-    splitter = init_splitter(src_lang)
-    
-    def translate_text(index, row, src_lang, dst_lang, splitter):
+
+    def translate_text(index, row, src_lang, dst_lang):
         attempts = 0
         success = False
 
@@ -57,23 +50,23 @@ def parallel_deeptranslate(content: Series, src_lang: str, dst_lang: str, show_p
                 success = True
 
             except NotValidPayload as e:
-                # print(f"Invalid input:")
+                print(f"Invalid input:")
                 text = llm_translate(row, src_lang)
                 break
 
             except TranslationNotFound as e:
-                # print(f"Could not find a translation. Translating using LLM:")
+                print(f"Could not find a translation. Translating using LLM:")
                 text = llm_translate(row, src_lang)
                 break
 
             except NotValidLength as e:
-                # print(f"Invalid input length:")
+                print(f"Invalid input length:")
                 # If there are no words in the text, it's probably a nonsense text
                 if not ' ' in row:
                     text = ''
                     break
 
-                sentences = chunk_by_sentences(row, src_lang, splitter)
+                sentences = chunk_by_sentences(row, src_lang)
 
                 # Translate the sentences separately
                 sentences = deeptranslate(sentences, src_lang, dst_lang, False)
@@ -94,7 +87,7 @@ def parallel_deeptranslate(content: Series, src_lang: str, dst_lang: str, show_p
 
     result = [None] * len(content)
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        future_to_index = {executor.submit(translate_text, index, row, src_lang, dst_lang, splitter): index for index, row in
+        future_to_index = {executor.submit(translate_text, index, row, src_lang, dst_lang): index for index, row in
                            enumerate(content)}
         iterator = tqdm(as_completed(future_to_index), total=len(content)) if show_progress else as_completed(
             future_to_index)
@@ -115,8 +108,6 @@ def deeptranslate(content: Series, src_lang: str, dst_lang: str, show_progress=T
     # Show progress or not
     iterator = tqdm(content) if show_progress else content
 
-    print('DeepTranslate: Init splitter')
-    splitter = init_splitter(src_lang)
     # Iterate through the data
     result = []
     for row in iterator:
@@ -136,25 +127,25 @@ def deeptranslate(content: Series, src_lang: str, dst_lang: str, show_progress=T
                 break
 
             except NotValidPayload as e:
-                # print(f"Invalid input:")
+                print(f"Invalid input:")
                 text = llm_translate(row,src_lang)
                 result.append(text)
                 break
 
             except TranslationNotFound as e:
-                # print(f"Could not find a translation:")
+                print(f"Could not find a translation:")
                 text = llm_translate(row, src_lang)
                 result.append(text)
                 break
 
             except NotValidLength as e:
-                # print(f"Invalid input length:")
+                print(f"Invalid input length:")
                 # If there are no words in the text, it's probably a nonsense text
                 if not ' ' in row:
                     result.append('')
                     break
 
-                sentences = chunk_by_sentences(row, src_lang, splitter)
+                sentences = chunk_by_sentences(row, src_lang)
 
                 # Translate the sentences separately
                 sentences = deeptranslate(sentences, src_lang, dst_lang, False)
@@ -178,8 +169,7 @@ def deeptranslate(content: Series, src_lang: str, dst_lang: str, show_progress=T
 
 # Convert to structured style
 def llm_translate(text: str, lang: str, model='qwen2.5:7b', verbose=False):
-    lang = 'zh-CN' if lang == 'zh' else lang
-    prompt = f"Translate the following text from {Lang(lang)} into English. Do not include empty lines or commentary."
+    prompt = f"Translate the following text from {Lang(lang).name} into English. Do not include empty lines or commentary."
 
     try:
         response = ollama.chat(
@@ -207,13 +197,11 @@ def llm_translate(text: str, lang: str, model='qwen2.5:7b', verbose=False):
     # If no translation was found return the original text
     return text
 
-def chunk_by_sentences(text, lang: str, splitter=None, max_length=5000):
+def chunk_by_sentences(text, lang: str, max_length=5000):
     """ Splits a single long text into sentences and groups them back into pseudo-sentences (or chunks)
     where each chunk is ≤ max_length characters."""
+    splitter = init_splitter(lang)
 
-    if not splitter:
-        print('Chunk by sentence: Init splitter')
-        splitter = init_splitter(lang)
     def chunk_by_words(text, max_length):
         """ Splits a single long sentence into words and groups them back into pseudo-sentences (or chunks)
         where each chunk is ≤ max_length characters."""
@@ -235,9 +223,6 @@ def chunk_by_sentences(text, lang: str, splitter=None, max_length=5000):
 
         return chunks
 
-    if not splitter:
-        print('Chunk by words: Init splitter')
-        splitter = init_splitter(lang)
     sentences = splitter.split(text)
 
     chunks = []

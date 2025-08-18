@@ -5,6 +5,7 @@ import pandas as pd
 from pandas import Series
 from tqdm.auto import tqdm
 from translation import cooldown, deeptranslate, parallel_deeptranslate
+from langdetect import detect
 
 # ANSI Highlighting: https://stackoverflow.com/a/21786287
 h_red = '\x1b[1;30;41m'
@@ -14,7 +15,7 @@ h_stop = '\x1b[0m'
 
 
 # Convert to structured style
-def to_structured(claims: Series, lang: str, model='qwen2.5:7b', show_progress=True, verbose=False):
+def to_structured(claims: Series, model='qwen2.5:7b', show_progress=True, verbose=False):
     prompt = ("Summarize the following text into a single, grammatically correct English sentence in a structured news-writing style, no longer than 300 characters. "
               "The sentence will be in English, but the named entities will be in original language. "
               "Replace any URLs with '[HTTP_LINK]'. "
@@ -44,8 +45,9 @@ def to_structured(claims: Series, lang: str, model='qwen2.5:7b', show_progress=T
                 )
                 output = response['message']['content'].strip()
                 # Translate the model response if necessary
+                lang = detect(row)
                 if lang != 'en':
-                    output = deeptranslate(content=[output], src_lang='en', dst_lang=lang, show_progress=False)[0]
+                    output = deeptranslate(content=pd.Series([output]), src_lang='en', dst_lang=lang, show_progress=False)[0]
 
                 # print(f'{h_yellow}Sentence: {row}{h_stop}')
                 if verbose:
@@ -61,11 +63,9 @@ def to_structured(claims: Series, lang: str, model='qwen2.5:7b', show_progress=T
     return results
 
 # Convert to structured style
-def to_noisy(claims: Series, lang: str, model='qwen2.5:7b', max_length=2500, show_progress=True, verbose=False):
-    from iso639 import Lang
+def to_noisy(claims: Series, model='qwen2.5:7b', max_length=2500, show_progress=True, verbose=False):
     import pandas as pd
 
-    orig_lang = Lang(lang).name
     prompt = (f"Summarize the following text into a single English sentence in a noisy social media-writing style, no longer than {max_length} characters. "
               "Do not include empty lines or commentary.")
 
@@ -74,7 +74,7 @@ def to_noisy(claims: Series, lang: str, model='qwen2.5:7b', max_length=2500, sho
 
     # Translate short claims in parallel
     if not short_claims.empty:
-        short_translated = parallel_deeptranslate(short_claims, src_lang='en', dst_lang=lang, show_progress=show_progress)
+        short_translated = parallel_deeptranslate(short_claims, src_lang='auto', dst_lang='en', show_progress=show_progress)
         short_results = pd.Series(short_translated, index=short_claims.index)
     else:
         short_results = pd.Series(dtype=str)
@@ -98,7 +98,7 @@ def to_noisy(claims: Series, lang: str, model='qwen2.5:7b', max_length=2500, sho
                 )
                 output = response['message']['content'].strip()
 
-                output = deeptranslate(content=[output], src_lang='en', dst_lang=lang, show_progress=False)[0]
+                output = deeptranslate(content=pd.Series([output]), src_lang='en', dst_lang=lang, show_progress=False)[0]
 
                 if verbose:
                     print(f'{h_yellow}Sentence: {row}{h_stop}')

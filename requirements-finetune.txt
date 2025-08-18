@@ -5,3 +5,11 @@ tf_keras
 Keras-Preprocessing
 tensorflow-text
 scikit-learn
+py-markdown-table
+ollama
+deep_translator
+iso639-lang
+langdetect
+ipywidgets
+wtpsplit
+yaspin

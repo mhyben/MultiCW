@@ -5,7 +5,7 @@ from pandas import Series
 from tqdm.auto import tqdm
 
 
-def extract_topics(claims: Series, model='gemma3:4b', show_progress=True):
+def extract_topics(claims: Series, model='qwen2.5:7b', show_progress=True):
     prompt = "Classify the following text into one of the categories: [health, politics, environment, science, sport, entertainment]. Respond in English and provide strictly one category from the list, without any additional commentary. If the text does not match any category, respond with 'unknown."
     categories = ['health', 'politics', 'environment', 'science', 'sport', 'entertainment', 'history']
 
